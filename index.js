@@ -1,4 +1,5 @@
 const http = require("http");
+const serverless = require("serverless-http");
 const express = require("express");
 const app = express();
 const server = http.createServer(app);
@@ -10,6 +11,7 @@ const io = require("socket.io")(3000, {
     methods: ["GET", "POST"],
   },
 });
+app.use("/.netlify/functions/app", router);
 app.use(
   cors(
     {
