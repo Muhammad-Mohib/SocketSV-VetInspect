@@ -6,16 +6,23 @@ const cors = require("cors");
 
 const io = require("socket.io")(3000, {
   cors: {
-    origin: "http://localhost:3001",
+    origin: "https://master--vet-inspect-backend.netlify.app/active-clients",
     methods: ["GET", "POST"],
   },
 });
 app.use(
-  cors({
-    origin: "http://localhost:3001", // Allow this origin
-    methods: ["GET", "POST"],
-    allowedHeaders: ["Content-Type"],
-  })
+  cors(
+    {
+      origin: "http://localhost:3001", // Allow this origin
+      methods: ["GET", "POST"],
+      allowedHeaders: ["Content-Type"],
+    },
+    {
+      origin: "https://vet-inspect.netlify.app/", // Allow this origin
+      methods: ["GET", "POST"],
+      allowedHeaders: ["Content-Type"],
+    }
+  )
 );
 let activeClients = [];
 
