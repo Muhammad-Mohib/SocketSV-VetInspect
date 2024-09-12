@@ -2,6 +2,7 @@ const http = require("http");
 const express = require("express");
 const app = express();
 const server = http.createServer(app);
+const cors = require("cors");
 
 const io = require("socket.io")(3000, {
   cors: {
@@ -9,36 +10,53 @@ const io = require("socket.io")(3000, {
     methods: ["GET", "POST"],
   },
 });
-
+app.use(
+  cors({
+    origin: "http://localhost:3001", // Allow this origin
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"],
+  })
+);
 let activeClients = [];
 
 io.on("connection", (socket) => {
   console.log("A user connected");
-  socket.on("message", (pathName, roomName) => {
-    // const clientIndex = activeClients.findIndex(
-    //   (client) => client.userId === socket.id
-    // );
 
-    // if (clientIndex > -1) {
-    //   activeClients[clientIndex] = {
-    //     pathName,
-    //     roomName,
-    //     userId: socket.id,
-    //     timestamp: new Date(),
-    //   };
-    // } else {
-    //   activeClients.push({
-    //     pathName,
-    //     roomName,
-    //     userId: socket.id,
-    //     timestamp: new Date(),
-    //   });
-    // }
-    console.log(pathName);
-    console.log(pathName + " by " + socket.id, roomName);
+  socket.on("message", ({ pathName, roomName, clientData }) => {
+    console.log(clientData);
+    if (clientData != undefined) {
+      const { clientIP } = clientData;
+
+      // Check if the client IP is already in the activeClients list
+      const clientIndex = activeClients.findIndex(
+        (client) => client.clientIP === clientIP
+      );
+
+      if (clientIndex > -1) {
+        // Update the existing entry
+        activeClients[clientIndex] = {
+          pathName,
+          roomName,
+          UID: socket.id,
+          ...clientData,
+          timestamp: new Date(),
+        };
+      } else {
+        // Add a new entry
+        activeClients.push({
+          pathName,
+          roomName,
+          UID: socket.id,
+          ...clientData,
+          timestamp: new Date(),
+        });
+      }
+      console.log(pathName + " from " + clientIP, roomName);
+    }
   });
   socket.on("disconnect", () => {
     console.log("User disconnected");
+    activeClients = activeClients.filter((client) => client.UID !== socket.id);
   });
 });
 
